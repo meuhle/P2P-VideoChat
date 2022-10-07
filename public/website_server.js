@@ -145,14 +145,14 @@ const { Connection, Request } = require("tedious");
 const config = {
     authentication: {
       options: {
-        userName: "Alex", 
-        password: "SQLAlex.22" 
+        userName: "", //insert here your sql username
+        password: ""  //insert here your sql password
       },
       type: "default"
     },
     server: "localhost", 
     options: {
-      database: "Poker", 
+      database: "",  //insert here your sql db name
       encrypt: true,
       trustServerCertificate: true  //importante
     }
