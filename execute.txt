@@ -1,6 +1,0 @@
-eseguire 
-node peerserver.js
-node website_server.js
-
-aprire 
-localhost:8800
