@@ -1,0 +1,43 @@
+
+
+
+var mazzo = ['Ad' , '2d', '3d', '4d', '5d', '6d', '7d', '8d', '9d', 'Td', 'Jd', 'Qd', 'Kd',
+             'As' , '2s', '3s', '4s', '5s', '6s', '7s', '8s', '9s', 'Ts', 'Js', 'Qs', 'Ks',
+             'Ac' , '2c', '3c', '4c', '5c', '6c', '7c', '8c', '9c', 'Tc', 'Jc', 'Qc', 'Kc',
+             'Ah' , '2h', '3h', '4h', '5h', '6h', '7h', '8h', '9h', 'Th', 'Jh', 'Qh', 'Kh' ]
+
+var mazzo_usato = mazzo;
+var onlineUser = [];
+var piatto;
+class Giocatore{
+    constructor(name, peer,cassa, /*turno,*/  ){
+        this.name = name;
+        this.id  =peer;
+        this.cassa= cassa;
+        //this.turno = turno;   turno non so se serve se faccio una lista di giocatori uso l'rdine per i turni 
+        this.bet = 0;
+        this.fold = false;
+    }
+}
+var num_player = 1;
+var logged = []; //questa è la lista degli utenti loggati per sapere chi puo giocare
+var player = []; //questa è la lista dei giocatori selezionati per giocare
+
+
+function shuffle(array) {   //funzione di shuffle per aumentare randomizzazione delle carte
+    let currentIndex = array.length,  randomIndex;
+  
+    // While there remain elements to shuffle.
+    while (currentIndex != 0) {
+  
+      // Pick a remaining element.
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+  
+      // And swap it with the current element.
+      [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex], array[currentIndex]];
+    }
+  
+    return array;
+  }

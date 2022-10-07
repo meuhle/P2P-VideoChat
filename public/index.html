@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+  <style>
+    .video{
+      height: 200px;
+      width: 200px;
+  }
+  .video_div{
+      width: 200px;
+      height:200px;
+      border: 2px solid;
+  }
+  </style>
+  <head>
+   
+    <title>P2P Video Chat</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>  <!-- importiamo peerjs-->
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <script>
+      var socket = io();
+    </script>
+  </head>
+<body>
+    <div id="name">
+        <p>Name</p>
+        <p id="Name"></p>
+        <input type="text" placeholder="Name" id= "text_name"/>
+      </div>
+
+      <div id="Password">
+        <p>Password</p>
+        <p id="Password"></p>
+        <input type="text" placeholder="Password" id= "text_pw"/>
+        <button id = "AddUser" >Register </button>
+        <button id = "Login" >Login </button>
+      </div>
+    <div id="Choose-Peer" >
+    <label for="On-User">Choose a peer:</label>
+    <select name="Users" id="On-User">
+    <option value="">--Please choose a peer--</option>
+    </select>
+    <button id = "Refresh" >Refresh Users </button>
+    <button id = "Call-Selected" >Call Selected</button>
+    </div>
+      <h3 id="show-peer"></h3>
+      <div id="show_video" style=" display: flex; justify-content: space-around;margin:10px;">
+        <div class="video_div" id="ourVideo">Our Video</div>
+       </div>
+
+    </body>
+
+<script>
+var showing_mine=0;
+  window.addEventListener('load', (event) => { 
+    var myID;
+    var myStream;
+    var peerList= [];
+    var peersocket=[];
+    var number =0;
+ 
+   var peer = new Peer({
+        /*host: "localhost",
+        port: 9000,
+        path: '/peerjs',
+        debug: 3,
+        secure: false,*/
+        config: {
+            'iceServers': [
+                { url: 'stun:stun.l.google.com:19302' },
+                { url: 'stun:stun1.l.google.com:19302' }
+                
+            ]
+        }
+    });
+    
+
+    peer.on('open', function (id) {
+        myID = id;
+        peerList.push(myID);
+    });
+
+    peer.on('call', function (call) {
+      var getUserMedia = navigator.mediaDevices.getUserMedia || navigator.mediaDevices.webkitGetUserMedia || navigator.mediaDevices.mozGetUserMedia;
+      getUserMedia({
+        video: true,
+        audio: true
+    })
+    .then((stream) => {
+        myStream = stream
+        addOurVideo(stream)
+        call.answer(stream)
+        call.on('stream',function(remoteStream){
+          if(IncludePeer(call.peer)==0){
+            addRemoteVideo(remoteStream,call.peer)
+            peerList.push(call.peer)
+            socket.emit('onCall', peerList)  
+       } })
+      }).catch((err) => {
+        console.log(err + "unable get media")
+      })
+      });
+  
+  document.getElementById("Refresh").addEventListener('click', (e) =>{
+    socket.emit('refresh');
+  });
+
+  document.getElementById("Call-Selected").addEventListener('click', (e) =>{
+    let remotepeer = document.getElementById("On-User").value;
+    document.getElementById("show-peer").innerHTML= "connecting to:" + remotepeer;
+    callPeer(remotepeer);
+  });
+
+  function IncludePeer(peer){
+    var is =0;
+    var io = 0;
+    for(var i=0;i<peerList.length;i++){
+      if(peerList[i].includes(peer)){
+        is=1;
+      }
+      if(peerList[i].includes(myID)){
+        i0=1;
+      }
+    }
+    if(i0 ==0){
+      peerList.push(myID);
+    }
+    return is;
+  }
+
+  function emptyList(selectElement) {
+    var i, L = selectElement.options.length - 1;
+    for(i = L; i >= 0; i--) {
+       selectElement.remove(i);
+    }
+ }
+  socket.on('userlist', (Users_list)=>{
+    var select = document.getElementById("On-User");
+    emptyList(select);
+    for( var i=0;i<Users_list.length;i++){
+      var nome = Users_list[i].split(':');
+      if(!nome[1].includes(String(myID))){
+        var opt = document.createElement("option");
+        opt.text = nome[0] ;
+        opt.value = nome[1]; //peer nel value
+        select.add(opt);
+      } 
+    }
+  });
+
+  socket.on('inCall', (peers)=>{  
+    for(var i=0; i<peers.length;i++){
+      if(!peerList.includes(peers[i])){
+        callPeer(peers[i]);
+      }
+    }
+  });
+
+  socket.on('close', (peer_n)=>{
+    let section = document.getElementById("show_video");
+    if(section.children.length!=0){
+      for (const child of section.children) {
+        var name = child.id
+        var comp = name.includes(peer_n);
+        if(name==peer_n){
+          section.removeChild(child);
+          child.remove();
+        }
+      } 
+    }
+  });
+
+  document.getElementById("AddUser").addEventListener('click', (e) =>{
+    let name = document.getElementById("text_name").value;
+    let pw = document.getElementById("text_pw").value;
+    let user = [3];
+    user [0] = name;
+    user[1] = pw;
+    user[2] = myID;
+    socket.emit('register', user)
+});
+
+document.getElementById("Login").addEventListener('click', (e) =>{
+  let name = document.getElementById("text_name").value;
+  let pw = document.getElementById("text_pw").value;
+  let user = [3];
+  user [0] = name;
+  user[1] = pw;
+  user[2] = myID;
+  socket.emit('login', user)
+});
+  
+  function callPeer(id){
+    var getUserMedia = navigator.mediaDevices.getUserMedia || navigator.mediaDevices.webkitGetUserMedia || navigator.mediaDevices.mozGetUserMedia;
+      getUserMedia({
+        video: true,
+        audio: true
+    })
+    .then((stream) => {
+      myStream = stream
+      addOurVideo(stream)
+      let call = peer.call(id, stream)
+      call.on('stream', function(remoteStream){
+        if(IncludePeer(call.peer)==0){
+        addRemoteVideo(remoteStream,call.peer)
+        peerList.push(call.peer)
+        socket.emit('onCall', peerList)  
+      }})
+    }).catch((err) => {
+      console.log(err + " unable get media")
+    })
+  }
+  
+  function addRemoteVideo(stream, peer){
+    let screen_div = document.getElementById("show_video");
+    let screen = document.createElement("div");
+    screen.classList = "video_div";
+    //screen.innerHTML= peer;
+    screen.setAttribute('id',peer);
+    number++;
+    let video  = document.createElement("video");
+    video.classList.add("video");
+    video.playsInline = true;
+    video.srcObject =  stream;
+    video.play();
+    screen.append(video)
+    screen_div.append(screen)
+    //}
+  }
+
+  function addOurVideo(stream){
+    let our = document.getElementById("ourVideo");
+    if(our.children.length==0){
+      let video  = document.createElement("video");
+      video.classList.add("video");
+      video.playsInline = true;
+      video.srcObject =  stream;
+      video.play();
+      our.append(video)
+    }
+  }
+});
+
+  </script> 
+ </html>
