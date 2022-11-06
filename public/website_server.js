@@ -87,6 +87,14 @@ io.on('connection', (socket) => {
     io.emit('userlist',User_list)
   });
 
+  socket.on('data', (data)=>{
+    console.log("received");
+    console.log("data: " + data)
+    for(var v in data){
+      console.log("v: " + v);
+    }
+  });
+
   socket.on('onCall', async (peerList)=>{
     for (var t=0;t<peerList.length;t++){
       if(on_call.length==0){
@@ -176,6 +184,7 @@ DB();
 
 var fs = require('fs');
 const { SocketAddress } = require('net');
+const { Console } = require('console');
 var index = fs.readFileSync(__dirname+'/index.html');
 
 server.listen(8080, ()=> {
