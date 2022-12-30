@@ -1,6 +1,6 @@
 # P2P-VideoChat-
 P2P VideoChat using PeerJs
-made by Alex Mulder (310311)
+
 
 
 #execution 
